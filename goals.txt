@@ -1,0 +1,16 @@
+----------------------------
+Starter Python Project: Discord bot
+Previous Exp: Mech Eng Undergrad CS classes, ardunio projects, CS50
+
+Goals:
+7/17/23
+-Start from frame given by toutorial at https://realpython.com/how-to-make-a-discord-bot-python
+-Add features as desired
+    -Desired features
+        -Message wtih Date
+        - Mesage at set time with weather 
+            Reach: Hourly weather and clothing reccomendations
+        - Message with expected commute 
+            Reach: Send a notication only if commute is loger than standrad
+        - Send links to new articles for selected sites
+        - Add more as scope is better understood
