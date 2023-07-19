@@ -5,7 +5,6 @@ import discord
 import random
 import matplotlib.pyplot as plt 
 import pandas as pd
-import pyimgur
 import numpy as np
 import seaborn as sns
 
@@ -123,27 +122,29 @@ async def weather(ctx):
     dailyHigh = int(round(((dataD.tmax.values[0])*1.8)+32, 0))
     dailyLow = int(round(((dataD.tmin.values[0])*1.8)+32, 0))
     dailyPrecip = round(dataD.prcp.values[0]/25.4, 1)
-    hourlyPrecip = dataH.prcp.values
+    hourlyPrecip = list((dataH.prcp.values/25.4).round(decimals=1))
     hourlyTemp = list((dataH.temp.values*1.8)+32)
     #hours = list(range(0,24))
     hours = ['12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM']
 
+
     #create graph of temp from 6am to 11pm
-    #07Price command here from refenc on how to imbed https://github.com/ChattyRS/RuneClock/blob/master/cogs/runescape.py#L341 
-
-    
-    print(hourlyTemp)
-    weatherTxt = f'Daily High: {dailyHigh}F\nDaily Low: {dailyLow}F\nPrecipitation : {dailyPrecip}in'
+    print(hourlyPrecip)
+    weatherTxt = f'Daily High/Low: {dailyHigh}F\/{dailyLow}F\nPrecipitation : {dailyPrecip}in'
 
 
-    #seaborn implemenation
+    #seaborn charing implemenation
     
 
     hourlyTempData = pd.DataFrame(hourlyTemp[6:],hours[6:])
-    sns.set_style('darkgrid')
+    hourlyPrecipData = pd.DataFrame(hourlyPrecip[6:],hours[6:])
     sns.set_context('talk')
+    #sns.axes_style(rc={'text.color': 'white'})
     
+    sns.set_style('darkgrid')
     fig = sns.lineplot(data=hourlyTempData, legend=False)
+    
+    
 
     tLine = fig.lines[0]
     x1 = tLine.get_xydata()[:,0]
@@ -162,8 +163,10 @@ async def weather(ctx):
     
 
     
-    plt.ylabel('Temp (F)')
-    plt.title(' Hourly Temp Forecast')
+    plt.ylabel('Temp (F)', fontdict={'color':'black'})
+    plt.title(' Hourly Temp Forecast', fontdict={'color':'black'})
+    
+
     
     
     plt.savefig('images/hourTemps.png', transparent=False)
@@ -176,7 +179,7 @@ async def weather(ctx):
 
 
     await ctx.send(weatherTxt)
-    await ctx.send( embed=embed, file=tempFile)
+    await ctx.send(embed=embed, file=tempFile)
 
 
 
