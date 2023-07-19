@@ -3,6 +3,11 @@ import os
 import meteostat
 import discord
 import random
+import matplotlib.pyplot as plt 
+import pandas as pd
+import pyimgur
+import numpy as np
+import seaborn as sns
 
 from dotenv import load_dotenv
 
@@ -117,12 +122,63 @@ async def weather(ctx):
     #parse data, get columon values for data of concern
     dailyHigh = int(round(((dataD.tmax.values[0])*1.8)+32, 0))
     dailyLow = int(round(((dataD.tmin.values[0])*1.8)+32, 0))
+    dailyPrecip = round(dataD.prcp.values[0]/25.4, 1)
+    hourlyPrecip = dataH.prcp.values
+    hourlyTemp = list((dataH.temp.values*1.8)+32)
+    #hours = list(range(0,24))
+    hours = ['12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM']
+
+    #create graph of temp from 6am to 11pm
+    #07Price command here from refenc on how to imbed https://github.com/ChattyRS/RuneClock/blob/master/cogs/runescape.py#L341 
+
+    
+    print(hourlyTemp)
+    weatherTxt = f'Daily High: {dailyHigh}F\nDaily Low: {dailyLow}F\nPrecipitation : {dailyPrecip}in'
+
+
+    #seaborn implemenation
+    
+
+    hourlyTempData = pd.DataFrame(hourlyTemp[6:],hours[6:])
+    sns.set_style('darkgrid')
+    sns.set_context('talk')
+    
+    fig = sns.lineplot(data=hourlyTempData, legend=False)
+
+    tLine = fig.lines[0]
+    x1 = tLine.get_xydata()[:,0]
+    y1 = tLine.get_xydata()[:,1]
+    fig.fill_between(x1,y1, color="blue", alpha=0.2)
+    ychartMax = max(y1)+5
+    ychartMin = min(y1)-5
+    fig.set_ylim(ychartMin,ychartMax)
+    
+    # only display exvery other x-label
+    for xL, axis in enumerate(fig.get_xticklabels()):
+        if xL % 3 == 0:  # every 4th label is kept
+            axis.set_visible(True)
+        else:
+            axis.set_visible(False)
+    
+
+    
+    plt.ylabel('Temp (F)')
+    plt.title(' Hourly Temp Forecast')
+    
+    
+    plt.savefig('images/hourTemps.png', transparent=False)
+    plt.close
+
+    tempFile = discord.File('images/hourTemps.png' , filename='DailyTemps.png')
+    embed= discord.Embed()
+    embed.set_image(url='attachment://DailyTemps.png')
     
 
 
-    weatherTxt = f'Daily High: {dailyHigh}F Daily Low: {dailyLow}F'
-
     await ctx.send(weatherTxt)
+    await ctx.send( embed=embed, file=tempFile)
+
+
 
 
 
