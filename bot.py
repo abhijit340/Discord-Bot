@@ -1,5 +1,6 @@
 # bot.py
 import os
+import math
 import meteostat
 import discord
 import random
@@ -122,6 +123,10 @@ async def weather(ctx):
     dailyHigh = int(round(((dataD.tmax.values[0])*1.8)+32, 0))
     dailyLow = int(round(((dataD.tmin.values[0])*1.8)+32, 0))
     dailyPrecip = round(dataD.prcp.values[0]/25.4, 1)
+
+    if math.isnan(dailyPrecip):
+        dailyPrecip = 0
+    
     hourlyPrecip = list((dataH.prcp.values/25.4).round(decimals=1))
     hourlyTemp = list((dataH.temp.values*1.8)+32)
     #hours = list(range(0,24))
@@ -142,23 +147,31 @@ async def weather(ctx):
     #sns.axes_style(rc={'text.color': 'white'})
     
     sns.set_style('darkgrid')
-    fig = sns.lineplot(data=hourlyTempData, legend=False)
     
+    fig, ax1 = plt.subplots()
+    sns.lineplot(data=hourlyTempData, ax =ax1)
+    ax1.get_legend().remove()
     
 
-    tLine = fig.lines[0]
+    
+
+    tLine = ax1.lines[0]
     x1 = tLine.get_xydata()[:,0]
     y1 = tLine.get_xydata()[:,1]
-    fig.fill_between(x1,y1, color="blue", alpha=0.2)
+    ax1.fill_between(x1,y1, color="blue", alpha=0.2)
     ychartMax = max(y1)+5
     ychartMin = min(y1)-5
-    fig.set_ylim(ychartMin,ychartMax)
+    ax1.set_ylim(ychartMin,ychartMax)
+
+    
+
     
     # only display exvery other x-label
-    for xL, axis in enumerate(fig.get_xticklabels()):
+    for xL, axis in enumerate(ax1.get_xticklabels()):
         if xL % 3 == 0:  # every 4th label is kept
             axis.set_visible(True)
         else:
+            
             axis.set_visible(False)
     
 
@@ -170,16 +183,39 @@ async def weather(ctx):
     
     
     plt.savefig('images/hourTemps.png', transparent=False)
-    plt.close
 
     tempFile = discord.File('images/hourTemps.png' , filename='DailyTemps.png')
     embed= discord.Embed()
     embed.set_image(url='attachment://DailyTemps.png')
+    plt.close()
     
-
 
     await ctx.send(weatherTxt)
     await ctx.send(embed=embed, file=tempFile)
+
+    fig, ax1 = plt.subplots()
+    sns.barplot( data=hourlyPrecipData, x = 'Index', ax=ax1 )
+    #sns.get_legend().remove()
+    
+    """
+    for xL, axis in enumerate(ax1.get_xticklabels()):
+        if xL % 3 == 0:  # every 4th label is kept
+            axis.set_visible(True)
+        else:
+            
+            axis.set_visible(False)
+    """
+    
+    plt.ylabel('Precip (In.)', fontdict={'color':'black'})
+    plt.title(' Hourly Precip Forecast', fontdict={'color':'black'})
+
+    fig.savefig('images/hourPrecip.png', transparent=False)
+    tempFile2 = discord.File('images/hourPrecip.png' , filename='DailyPrecip.png')
+    embed2= discord.Embed()
+    embed2.set_image(url='attachment://DailyPrecip.png')
+
+
+    await ctx.send(embed=embed2, file=tempFile2)
 
 
 
