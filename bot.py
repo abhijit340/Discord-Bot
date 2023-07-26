@@ -194,7 +194,16 @@ async def weather(ctx):
     await ctx.send(embed=embed, file=tempFile)
 
     fig, ax1 = plt.subplots()
-    sns.barplot( data=hourlyPrecipData, x = 'Index', ax=ax1 )
+    sns.barplot( x = hours[6:] ,y = hourlyPrecip[6:])
+
+    for xL, axis in enumerate(ax1.get_xticklabels()):
+        if xL % 3 == 0:  # every 4th label is kept
+            axis.set_visible(True)
+        else:
+            
+            axis.set_visible(False)
+
+
     #sns.get_legend().remove()
     
     """
@@ -214,8 +223,10 @@ async def weather(ctx):
     embed2= discord.Embed()
     embed2.set_image(url='attachment://DailyPrecip.png')
 
+    if dailyPrecip != 0:
+        await ctx.send(embed=embed2, file=tempFile2)
 
-    await ctx.send(embed=embed2, file=tempFile2)
+    
 
 
 
