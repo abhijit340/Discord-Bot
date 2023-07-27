@@ -9,6 +9,12 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 
+
+#async scheduler so it does not block other events
+import apscheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 from dotenv import load_dotenv
 
 from datetime import datetime, date
@@ -20,6 +26,9 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERVER = os.getenv('DISCORD_SERVER')
+GEN_CHANNEL = 1130641026713927743
+
+GEN_CTX = 0
 
 
 intents=discord.Intents.default()
@@ -72,6 +81,13 @@ async def on_error(event, *args, **kwargs):
             raise
 
 """
+
+@bot.command(name = 'init', help='get intial ctx')
+async def respond(ctx):
+    """ dummy response """
+    GEN_CTX = ctx
+    response = 'initailized'
+    await ctx.send(response)
 
 @bot.command(name = 'hello', help='just syas hi back to you')
 async def respond(ctx):
@@ -229,7 +245,25 @@ async def weather(ctx):
     
 
  
+async def func():
+    await bot.wait_until_ready()
 
+    await  GEN_CTX.invoke(self.bot.get_command('weather'))
+
+@bot.event
+async def on_ready():
+    print("Ready")
+    c = bot.get_channel(GEN_CHANNEL)
+    await c.send('Please use command !init to set up bot')
+
+    #initializing scheduler
+    scheduler = AsyncIOScheduler()
+
+    #sends "Your Message" at 12PM and 18PM (Local Time)
+    scheduler.add_job(func, CronTrigger(hour="02", minute="57", second="0")) 
+    print("Ready 3")
+    #starting the scheduler
+    scheduler.start()
 
 
 bot.run(TOKEN)
