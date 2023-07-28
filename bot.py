@@ -26,7 +26,7 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERVER = os.getenv('DISCORD_SERVER')
-GEN_CHANNEL = 1130641026713927743
+GEN_CHANNEL = 1130641026713927743  #Gernal chancell ID, make this more robust later
 
 GEN_CTX = 0
 
@@ -82,12 +82,6 @@ async def on_error(event, *args, **kwargs):
 
 """
 
-@bot.command(name = 'init', help='get intial ctx')
-async def respond(ctx):
-    """ dummy response """
-    GEN_CTX = ctx
-    response = 'initailized'
-    await ctx.send(response)
 
 @bot.command(name = 'hello', help='just syas hi back to you')
 async def respond(ctx):
@@ -106,6 +100,28 @@ async def roll (ctx, num_d:int, sides_d:int):
 
 @bot.command(name = 'weather', help= ' gives daily weather info')
 async def weather(ctx):
+
+    wReport = weather_core()
+
+
+    await ctx.send(wReport[0])
+
+    tempFile = discord.File(wReport[1] , filename='DailyTemps.png')
+    embed= discord.Embed()
+    embed.set_image(url='attachment://DailyTemps.png')
+    await ctx.send(embed=embed, file=tempFile)
+
+
+    if wReport[2] != 'null':
+        tempFile2 = discord.File(wReport[2] , filename='DailyPrecip.png')
+        embed2= discord.Embed()
+        embed2.set_image(url='attachment://DailyPrecip.png')
+        await ctx.send(embed=embed2, file=tempFile2)
+
+
+
+"""core weather reporting function that returns a list containing the weather repoer and two graphs"""
+def weather_core():
     
     #get current date
     today = str(date.today())
@@ -199,15 +215,14 @@ async def weather(ctx):
     
     
     plt.savefig('images/hourTemps.png', transparent=False)
+    tempsGraphLoc = 'images/hourTemps.png'
 
-    tempFile = discord.File('images/hourTemps.png' , filename='DailyTemps.png')
-    embed= discord.Embed()
-    embed.set_image(url='attachment://DailyTemps.png')
+
     plt.close()
     
 
-    await ctx.send(weatherTxt)
-    await ctx.send(embed=embed, file=tempFile)
+    #await ctx.send(weatherTxt)
+    #
 
     fig, ax1 = plt.subplots()
     sns.barplot( x = hours[6:] ,y = hourlyPrecip[6:])
@@ -235,33 +250,57 @@ async def weather(ctx):
     plt.title(' Hourly Precip Forecast', fontdict={'color':'black'})
 
     fig.savefig('images/hourPrecip.png', transparent=False)
-    tempFile2 = discord.File('images/hourPrecip.png' , filename='DailyPrecip.png')
-    embed2= discord.Embed()
-    embed2.set_image(url='attachment://DailyPrecip.png')
-
+    
     if dailyPrecip != 0:
-        await ctx.send(embed=embed2, file=tempFile2)
-
+        precipGraphLoc = 'images/hourPrecip.png'
+    else:
+         precipGraphLoc = 'null'
+        
     
 
+    return [weatherTxt, tempsGraphLoc ,precipGraphLoc ]
+
+
+    #
+
+
  
-async def func():
+async def morningReport():
     await bot.wait_until_ready()
 
-    await  GEN_CTX.invoke(self.bot.get_command('weather'))
+    wReport = weather_core()
+
+    #ger general channnel
+    genChan = bot.get_channel(GEN_CHANNEL)
+
+
+    await genChan.send(wReport[0])
+
+    tempFile = discord.File(wReport[1] , filename='DailyTemps.png')
+    embed= discord.Embed()
+    embed.set_image(url='attachment://DailyTemps.png')
+    await genChan.send(embed=embed, file=tempFile)
+
+
+    if wReport[2] != 'null':
+        tempFile2 = discord.File(wReport[2] , filename='DailyPrecip.png')
+        embed2= discord.Embed()
+        embed2.set_image(url='attachment://DailyPrecip.png')
+        await genChan.send(embed=embed2, file=tempFile2)
+
+
 
 @bot.event
 async def on_ready():
     print("Ready")
     c = bot.get_channel(GEN_CHANNEL)
-    await c.send('Please use command !init to set up bot')
 
     #initializing scheduler
     scheduler = AsyncIOScheduler()
 
     #sends "Your Message" at 12PM and 18PM (Local Time)
-    scheduler.add_job(func, CronTrigger(hour="02", minute="57", second="0")) 
-    print("Ready 3")
+    #discord server midnight is at 5PM for some reason
+    scheduler.add_job(morningReport, CronTrigger(hour="00", minute="15", second="0")) 
     #starting the scheduler
     scheduler.start()
 
