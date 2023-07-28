@@ -300,7 +300,7 @@ async def on_ready():
 
     #sends "Your Message" at 12PM and 18PM (Local Time)
     #discord server midnight is at 5PM for some reason
-    scheduler.add_job(morningReport, CronTrigger(hour="00", minute="15", second="0")) 
+    scheduler.add_job(morningReport, CronTrigger(hour="04", minute="17", second="0")) 
     #starting the scheduler
     scheduler.start()
 
