@@ -1,0 +1,8 @@
+APScheduler==3.10.1
+discord.py==2.3.1
+matplotlib==3.7.1
+meteostat==1.6.5
+numpy==1.24.3
+pandas==2.0.2
+python-dotenv==1.0.0
+seaborn==0.12.2
