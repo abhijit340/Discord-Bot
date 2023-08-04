@@ -4,6 +4,8 @@ import math
 import meteostat
 import discord
 import random
+import schedule
+import time
 import matplotlib.pyplot as plt 
 import pandas as pd
 import numpy as np
@@ -19,7 +21,7 @@ from dotenv import load_dotenv
 
 from datetime import datetime, date
 from meteostat import Hourly, Daily
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 
@@ -290,19 +292,17 @@ async def morningReport():
 
 
 
-@bot.event
+moringRepTime = datetime.time(hour=20, minute=20, second=10) #Create the time on which the task should always run
+
+@tasks.loop(time=moringRepTime) #Create the task
+async def Goodnight():
+    channel = bot.get_channel(GEN_CHANNEL)
+    await channel.send("Good night! Make sure to go to sleep early, and get enough sleep!")
+    print("Night Working")
+
+@client.event
 async def on_ready():
-    print("Ready")
-    c = bot.get_channel(GEN_CHANNEL)
+    if not Goodnight.is_running():
+        Goodnight.start() #If the task is not already running, start it.
+        print("Good night task started")
 
-    #initializing scheduler
-    scheduler = AsyncIOScheduler()
-
-    #sends "Your Message" at 12PM and 18PM (Local Time)
-    #discord server midnight is at 5PM for some reason
-    scheduler.add_job(morningReport, CronTrigger(hour="04", minute="17", second="0")) 
-    #starting the scheduler
-    scheduler.start()
-
-
-bot.run(TOKEN)
